@@ -1,9 +1,14 @@
+require('dotenv').config();
+
 const express = require('express');
+
 const mongoose = require('mongoose');
+
 const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
@@ -14,6 +19,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Connect to MongoDB then start server
 mongoose.connect('mongodb://127.0.0.1:27017/jobtracker')
