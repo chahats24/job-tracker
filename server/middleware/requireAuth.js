@@ -7,7 +7,7 @@ const requireAuth = async (req,res,next)=> {
     }
     const token=authorization.split(' ')[1];
     try{
-        const {id}=jwt.verify(token,'supersecretkey123');
+        const {id}=jwt.verify(token,process.env.JWT_SECRET);
         req.user=await User.findOne({_id:id}).select('_id');
         next();
     }catch(err){
