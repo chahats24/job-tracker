@@ -41,6 +41,19 @@ const loginUser=async (req,res) => {
         res.status(400).json({error:err.message});
     }
 };
+const getCurrentUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('email');
 
-module.exports={registerUser,loginUser};
+        res.status(200).json({
+            email: user.email
+        });
+    } catch (err) {
+        res.status(400).json({
+            error: err.message
+        });
+    }
+};
+
+module.exports={registerUser,loginUser,getCurrentUser};
 
