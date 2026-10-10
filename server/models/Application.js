@@ -11,7 +11,12 @@ const applicationSchema = new Schema({
     jobLink : { type : String, default : ""},
     notes : { type : String, default : ""},
     dateApplied : {type: Date, default : Date.now},
-    user_id : {type: String, required: true}
+    user_id: {
+  type: Schema.Types.ObjectId,
+  ref: 'User',
+  required: true,
+  index: true
+} 
 
 },{timestamps: true});
 

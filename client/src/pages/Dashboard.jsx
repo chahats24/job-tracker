@@ -1,18 +1,19 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext,useEffect} from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import StatCard from '../components/StatCard';
 import KanbanBoard from '../components/KanbanBoard';
+import ApplicationForm from '../components/ApplicationForm';
+import api from '../services/api';
 const Dashboard = () => {
-    const { user, token } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const [applications, setApplications] = useState([]);
+    const [showForm, setShowForm] = useState(false);
     useEffect(() => {
         const fetchApplications = async () => {
             try {
-                const response = await axios.get('http://localhost:4000/api/applications', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await api.get('/applications');
                 setApplications(response.data);
             } catch (err) {
                 console.log(err);
@@ -20,7 +21,7 @@ const Dashboard = () => {
         };
         fetchApplications();
 
-    }, [token]);
+    }, []);
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return 'Good morning';
@@ -46,7 +47,14 @@ const Dashboard = () => {
                             Track and manage your job applications
                         </p>
                     </div>
-                    <button className="bg-blue-800 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900 transition-colors flex items-center gap-2">
+                    <button
+                        onClick={() => {
+                            console.log('button clicked');
+                            console.log('showForm before:',showForm);
+                            setShowForm(true);
+                            console.log('showForm after set:',showForm);
+                        }}
+                        className="bg-blue-800 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900 transition-colors flex items-center gap-2">
                         + Add Application
                     </button>
                 </div>
@@ -65,6 +73,16 @@ const Dashboard = () => {
                     <KanbanBoard applications={applications} />
                 </div>
             </div>
+            {/* Application Form Modal */}
+            {showForm && (
+                <ApplicationForm
+                    onClose={() => setShowForm(false)}
+                    onAdd={(newApp) => {
+                        setApplications(prev => [newApp, ...prev]);
+                        setShowForm(false);
+                    }}
+                />
+            )}
         </div>
     );
 };

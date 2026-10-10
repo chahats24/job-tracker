@@ -82,14 +82,14 @@ const addApplication = async (req, res) => {
 
     try {
         const application = await Application.create({
-            company,
-            role,
-            status,
-            jobLink,
-            notes,
-            dateApplied,
-            user_id
-        });
+    company: company.trim(),
+    role: role.trim(),
+    status,
+    jobLink: jobLink?.trim(),
+    notes: notes?.trim(),
+    dateApplied,
+    user_id
+});
 
         res.status(201).json(application);
 

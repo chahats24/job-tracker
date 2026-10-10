@@ -1,9 +1,19 @@
+
 require('dotenv').config();
+const dns = require('node:dns');
+
+dns.setServers(['1.1.1.1', '8.8.8.8']);
+
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is missing from environment variables');
+}
+
+if (!process.env.MONGO_URI) {
+  throw new Error('MONGO_URI is missing from environment variables');
+}
 
 const express = require('express');
-
 const mongoose = require('mongoose');
-
 const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
@@ -21,12 +31,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/ai', aiRoutes);
 
-// Connect to MongoDB then start server
-mongoose.connect('mongodb://127.0.0.1:27017/jobtracker')
+// Connect to MongoDB, then start the server
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
+    console.log('Connected to MongoDB Atlas!');
+
     app.listen(4000, () => {
-      console.log('Connected to MongoDB!');
       console.log('Server running on port 4000');
     });
   })
-  .catch(err => console.log(err));
+  .catch((err) => {
+    console.error('MongoDB connection failed:', err.message);
+    process.exit(1);
+  });
