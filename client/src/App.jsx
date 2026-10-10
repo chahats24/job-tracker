@@ -5,6 +5,7 @@ import Applications from './pages/Applications';
 import Insights from './pages/Insights';
 import InterviewPrep from './pages/InterviewPrep';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 function App(){
   return (
@@ -16,6 +17,14 @@ function App(){
       <Route path='/applications' element={<ProtectedRoute><Applications/></ProtectedRoute>}/>
       <Route path='/insights' element={<ProtectedRoute><Insights/></ProtectedRoute>}/>
       <Route path='/interview-prep' element={<ProtectedRoute><InterviewPrep/></ProtectedRoute>}/>
+      <Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <Profile />
+    </ProtectedRoute>
+  }
+/>
     </Routes>
     </BrowserRouter>
   );

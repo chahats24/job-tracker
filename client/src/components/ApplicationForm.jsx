@@ -1,12 +1,20 @@
 import { useState } from 'react';
+import {
+  X,
+  BriefcaseBusiness,
+  Link2,
+  CalendarDays,
+  FileText,
+  Tag,
+  Loader2,
+} from 'lucide-react';
 import api from '../services/api';
 
 const ApplicationForm = ({
   onClose,
   onApplicationAdded,
-  applicationToEdit
+  applicationToEdit,
 }) => {
-
   const [formData, setFormData] = useState({
     company: applicationToEdit?.company || '',
     role: applicationToEdit?.role || '',
@@ -15,256 +23,340 @@ const ApplicationForm = ({
     notes: applicationToEdit?.notes || '',
     dateApplied: applicationToEdit?.dateApplied
       ? applicationToEdit.dateApplied.slice(0, 10)
-      : ''
+      : '',
   });
 
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     if (!formData.company.trim()) {
-        setError('Company name is required');
-        return;
+      return setError('Company name is required');
     }
 
     if (!formData.role.trim()) {
-        setError('Role is required');
-        return;
+      return setError('Role is required');
     }
+
     if (formData.jobLink.trim()) {
-    try {
+      try {
         const url = new URL(formData.jobLink);
 
         if (!['http:', 'https:'].includes(url.protocol)) {
-            setError('Job link must start with http:// or https://');
-            return;
+          return setError(
+            'Job link must start with http:// or https://'
+          );
         }
-    } catch {
-        setError('Please enter a valid job link');
-        return;
+      } catch {
+        return setError('Please enter a valid job link');
+      }
     }
-}
-const cleanedData = {
-    ...formData,
-    company: formData.company.trim(),
-    role: formData.role.trim(),
-    jobLink: formData.jobLink.trim(),
-    notes: formData.notes.trim()
-};
+
+    const cleanedData = {
+      ...formData,
+      company: formData.company.trim(),
+      role: formData.role.trim(),
+      jobLink: formData.jobLink.trim(),
+      notes: formData.notes.trim(),
+    };
 
     setSubmitting(true);
-    try {
-      let response;
 
-      if (applicationToEdit) {
-    response = await api.patch(
-        `/applications/${applicationToEdit._id}`,
-        cleanedData
-    );
-} else {
-    response = await api.post(
-        '/applications',
-        cleanedData
-    );
-}
+    try {
+      const response = applicationToEdit
+        ? await api.patch(
+            `/applications/${applicationToEdit._id}`,
+            cleanedData
+          )
+        : await api.post('/applications', cleanedData);
 
       onApplicationAdded(response.data);
       onClose();
-
     } catch (err) {
       setError(
-        err.response?.data?.error ||
-        'Something went wrong'
+        err.response?.data?.error || 'Something went wrong'
       );
-    }
-    finally {
+    } finally {
       setSubmitting(false);
     }
   };
 
+  const inputClass =
+    'w-full h-12 rounded-xl border border-white/[0.08] bg-[#111217] px-4 text-[14px] text-zinc-100 outline-none transition-all placeholder:text-zinc-600 focus:border-indigo-500/60 focus:bg-[#14151c] focus:ring-4 focus:ring-indigo-500/10';
+
+  const labelClass =
+    'mb-2.5 block text-[13px] font-semibold tracking-wide text-zinc-300';
+
+  const iconClass =
+    'pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500';
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl">
 
-      <div className="bg-white w-full max-w-2xl max-h-screen rounded-2xl p-8 flex flex-col gap-4 overflow-y-auto mx-4">
+      {/* MODAL */}
+      <div className="relative w-full max-w-[820px] overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#0d0e12] shadow-[0_30px_100px_rgba(0,0,0,0.65)]">
 
-        <div className="flex items-center justify-between">
+        {/* subtle top glow */}
+        <div className="pointer-events-none absolute left-1/2 top-0 h-32 w-[70%] -translate-x-1/2 rounded-full bg-indigo-500/[0.07] blur-3xl" />
 
-          <h2 className="text-lg font-semibold text-gray-800">
-            {applicationToEdit
-              ? 'Edit Application'
-              : 'Add Application'}
-          </h2>
+        {/* HEADER */}
+        <div className="relative border-b border-white/[0.07] px-6 py-6 sm:px-8">
 
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl"
-          >
-            ✕
-          </button>
+          <div className="flex items-start justify-between">
 
-        </div>
+            <div>
+              <div className="mb-3 flex items-center gap-2.5">
 
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-400/10 bg-indigo-500/10 text-indigo-400">
+                  <BriefcaseBusiness
+                    size={17}
+                    strokeWidth={2}
+                  />
+                </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4"
-        >
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-400">
+                  Career tracker
+                </span>
+              </div>
 
-          {/* Company */}
-          <div className="flex flex-col gap-1.5">
+              <h2 className="text-[22px] font-bold tracking-tight text-white">
+                {applicationToEdit
+                  ? 'Edit application'
+                  : 'Add application'}
+              </h2>
 
-            <label className="text-sm font-medium text-gray-600">
-              Company name
-            </label>
-
-            <input
-              type="text"
-              name="company"
-              placeholder="e.g. Google"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-500"
-            />
-
-          </div>
-
-
-          {/* Role */}
-          <div className="flex flex-col gap-1.5">
-
-            <label className="text-sm font-medium text-gray-600">
-              Role
-            </label>
-
-            <input
-              type="text"
-              name="role"
-              placeholder="e.g. SDE Intern"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-500"
-            />
-
-          </div>
-
-
-          {/* Status */}
-          <div className="flex flex-col gap-1.5">
-
-            <label className="text-sm font-medium text-gray-600">
-              Status
-            </label>
-
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-500"
-            >
-              <option value="Applied">
-                Applied
-              </option>
-
-              <option value="Interview">
-                Interview
-              </option>
-
-              <option value="Offer">
-                Offer
-              </option>
-
-              <option value="Rejected">
-                Rejected
-              </option>
-
-            </select>
-
-          </div>
-
-
-          {/* Job Link */}
-          <div className="flex flex-col gap-1.5">
-
-            <label className="text-sm font-medium text-gray-600">
-              Job link
-            </label>
-
-            <input
-              type="text"
-              name="jobLink"
-              placeholder="https://..."
-              value={formData.jobLink}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-500"
-            />
-
-          </div>
-
-
-          {/* Date Applied */}
-          <div className="flex flex-col gap-1.5">
-
-            <label className="text-sm font-medium text-gray-600">
-              Date applied
-            </label>
-
-            <input
-              type="date"
-              name="dateApplied"
-              value={formData.dateApplied}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-500"
-            />
-
-          </div>
-
-
-          {/* Notes */}
-          <div className="flex flex-col gap-1.5">
-
-            <label className="text-sm font-medium text-gray-600">
-              Notes
-            </label>
-
-            <textarea
-              name="notes"
-              placeholder="Any notes about this application..."
-              value={formData.notes}
-              onChange={handleChange}
-              rows={3}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-blue-500 resize-none"
-            />
-
-          </div>
-
-
-          {/* Error */}
-          {error && (
-            <p className="text-red-500 text-sm">
-              {error}
-            </p>
-          )}
-
-
-          {/* Buttons */}
-          <div className="flex gap-3 mt-2">
+              <p className="mt-1.5 text-[13px] text-zinc-500">
+                Keep the details of your opportunity in one place.
+              </p>
+            </div>
 
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-transparent text-zinc-500 transition-all hover:border-white/[0.07] hover:bg-white/[0.05] hover:text-zinc-200"
+            >
+              <X size={19} />
+            </button>
+
+          </div>
+        </div>
+
+        {/* FORM */}
+        <form
+          onSubmit={handleSubmit}
+          className="relative max-h-[78vh] overflow-y-auto px-6 py-7 sm:px-8"
+        >
+
+          <div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
+
+            {/* COMPANY */}
+            <div>
+              <label className={labelClass}>
+                Company
+              </label>
+
+              <div className="relative">
+                <BriefcaseBusiness
+                  size={16}
+                  className={iconClass}
+                />
+
+                <input
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
+                  placeholder="e.g. Google"
+                  className={`${inputClass} pl-11`}
+                />
+              </div>
+            </div>
+
+            {/* ROLE */}
+            <div>
+              <label className={labelClass}>
+                Role
+              </label>
+
+              <div className="relative">
+                <Tag
+                  size={16}
+                  className={iconClass}
+                />
+
+                <input
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  placeholder="e.g. Software Engineer Intern"
+                  className={`${inputClass} pl-11`}
+                />
+              </div>
+            </div>
+
+            {/* JOB LINK */}
+            <div>
+              <label className={labelClass}>
+                Job link
+              </label>
+
+              <div className="relative">
+                <Link2
+                  size={16}
+                  className={iconClass}
+                />
+
+                <input
+                  name="jobLink"
+                  value={formData.jobLink}
+                  onChange={handleChange}
+                  placeholder="https://..."
+                  className={`${inputClass} pl-11`}
+                />
+              </div>
+            </div>
+
+            {/* STATUS */}
+            <div>
+              <label className={labelClass}>
+                Status
+              </label>
+
+              <div className="relative">
+                <Tag
+                  size={16}
+                  className={iconClass}
+                />
+
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className={`${inputClass} cursor-pointer appearance-none pl-11 pr-10`}
+                >
+                  <option
+                    value="Applied"
+                    className="bg-[#111217] text-white"
+                  >
+                    Applied
+                  </option>
+
+                  <option
+                    value="Interview"
+                    className="bg-[#111217] text-white"
+                  >
+                    Interview
+                  </option>
+
+                  <option
+                    value="Offer"
+                    className="bg-[#111217] text-white"
+                  >
+                    Offer
+                  </option>
+
+                  <option
+                    value="Rejected"
+                    className="bg-[#111217] text-white"
+                  >
+                    Rejected
+                  </option>
+                </select>
+
+                {/* custom arrow */}
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* DATE */}
+            <div>
+              <label className={labelClass}>
+                Date applied
+              </label>
+
+              <div className="relative">
+                <CalendarDays
+                  size={16}
+                  className={iconClass}
+                />
+
+                <input
+                  type="date"
+                  name="dateApplied"
+                  value={formData.dateApplied}
+                  onChange={handleChange}
+                  className={`${inputClass} pl-11 [color-scheme:dark]`}
+                />
+              </div>
+            </div>
+
+            {/* NOTES */}
+            <div className="sm:col-span-2">
+              <label className={labelClass}>
+                Notes
+              </label>
+
+              <div className="relative">
+                <FileText
+                  size={16}
+                  className="pointer-events-none absolute left-4 top-4 text-zinc-500"
+                />
+
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  rows={5}
+                  placeholder="Interview notes, recruiter details, next steps..."
+                  className={`${inputClass} min-h-[125px] resize-none pl-11 pt-3.5 leading-6`}
+                />
+              </div>
+
+              <p className="mt-2 text-[11px] text-zinc-600">
+                Add anything useful that you want to remember about
+                this opportunity.
+              </p>
+            </div>
+
+          </div>
+
+          {/* ERROR */}
+          {error && (
+            <div className="mt-6 flex items-start gap-3 rounded-xl border border-rose-500/20 bg-rose-500/[0.08] px-4 py-3.5 text-[13px] text-rose-300">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* FOOTER */}
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-white/[0.06] pt-6 sm:flex-row sm:items-center sm:justify-end">
+
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="h-11 rounded-xl border border-white/[0.08] bg-white/[0.02] px-5 text-[13px] font-semibold text-zinc-400 transition-all hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>
@@ -272,22 +364,26 @@ const cleanedData = {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-blue-800 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-500 px-6 text-[13px] font-bold text-white shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-400 hover:shadow-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-60"
             >
+              {submitting && (
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                />
+              )}
+
               {submitting
                 ? 'Saving...'
                 : applicationToEdit
-                  ? 'Save Changes'
-                  : 'Add Application'
-              }
+                ? 'Save changes'
+                : 'Add application'}
             </button>
 
           </div>
 
         </form>
-
       </div>
-
     </div>
   );
 };

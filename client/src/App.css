@@ -1,26 +1,6 @@
-.app-shell {
-  min-height: 100vh;
-}
-
-.glow-indigo {
-  box-shadow:
-    0 0 40px rgba(99, 102, 241, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.02);
-}
-
-.glow-cyan {
-  box-shadow:
-    0 0 40px rgba(6, 182, 212, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.02);
-}
-
+.app-shell { min-height: 100vh; }
 .text-gradient {
-  background: linear-gradient(
-    90deg,
-    #a5b4fc 0%,
-    #818cf8 45%,
-    #22d3ee 100%
-  );
+  background: linear-gradient(90deg, #c4b5fd 0%, #818cf8 45%, #67e8f9 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

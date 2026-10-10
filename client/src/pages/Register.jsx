@@ -2,151 +2,263 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
+
+import {
+  BriefcaseBusiness,
+  Mail,
+  Lock,
+  ArrowRight,
+  Sparkles,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
+const MIN_PASSWORD_LENGTH = 8;
 const Register = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  setError(null);
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return setError(
+      `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`
+    );
+  }
 
-    try {
-      const response = await api.post('/auth/register', {
-    email,
-    password
-});
-      login(response.data);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response.data.error);
-    }
-  };
+  if (password !== confirmPassword) {
+    return setError('Passwords do not match');
+  }
+
+  try {
+    const response = await api.post('/auth/register', {
+      email,
+      password,
+    });
+
+    login(response.data);
+    navigate('/dashboard');
+  } catch (err) {
+    setError(
+      err.response?.data?.error ||
+        'Unable to create your account. Please try again.'
+    );
+  }
+};
 
   return (
-    <div className="flex h-screen">
+    <div className="login-page register-page">
 
-      {/* Left Blue Panel */}
-      <div className="w-1/2 bg-blue-800 flex flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-2xl">
-            💼
+      {/* =====================================================
+          LEFT SIDE
+      ====================================================== */}
+
+      <section className="login-left">
+
+        <div className="login-brand">
+          <div className="login-brand-icon">
+            <BriefcaseBusiness size={22} />
           </div>
-          <span className="text-white text-2xl font-semibold">TrackIt</span>
+
+          <span className="login-brand-name">
+            Track<span>It</span>
+          </span>
         </div>
 
-        <div className="flex flex-col gap-10">
-          <div className="text-white text-5xl font-semibold leading-tight">
-            Start your<br />
-            <span className="text-blue-300">job hunt</span><br />
-            journey
-          </div>
-          <div className="flex flex-col gap-5">
-            <div className="flex items-center gap-4 text-white">
-              <div className="w-10 h-10 bg-white bg-opacity-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
-                ✅
-              </div>
-              <span className="text-base">Track all your applications in one place</span>
-            </div>
-            <div className="flex items-center gap-4 text-white">
-              <div className="w-10 h-10 bg-white bg-opacity-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
-                📊
-              </div>
-              <span className="text-base">AI-powered insights and analytics</span>
-            </div>
-            <div className="flex items-center gap-4 text-white">
-              <div className="w-10 h-10 bg-white bg-opacity-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
-                🎯
-              </div>
-              <span className="text-base">Interview preparation room</span>
-            </div>
-          </div>
+        <div className="login-intro register-intro">
+
+          <p className="login-eyebrow">
+            BUILD YOUR WORKSPACE
+          </p>
+
+          <h1>
+            Start tracking.
+            <br />
+            <span>Start progressing.</span>
+          </h1>
+
+          <p>
+            Keep your applications organized, understand your progress,
+            and prepare smarter for every interview.
+          </p>
+
         </div>
 
-        <div></div>
-      </div>
+      </section>
 
-      {/* Right White Panel */}
-      <div className="w-1/2 bg-white flex flex-col justify-center items-center p-12">
-        <div className="w-full max-w-sm flex flex-col gap-6">
 
-          {/* Heading */}
-          <div>
-            <h2 className="text-3xl font-semibold text-gray-800">Create account</h2>
-            <p className="text-gray-500 text-base mt-2">Join TrackIt and start tracking</p>
+      {/* =====================================================
+          RIGHT SIDE
+      ====================================================== */}
+
+      <section className="login-right">
+
+        <div className="login-card register-card">
+
+          {/* Header */}
+
+          <div className="login-card-header">
+
+            <div className="register-icon">
+              <Sparkles size={18} />
+            </div>
+
+            <p className="login-welcome">
+              CREATE ACCOUNT
+            </p>
+
+            <h2>
+              Create your workspace
+            </h2>
+
+            <p>
+              Set up your TrackIt account and start organizing your job search.
+            </p>
+
           </div>
+
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-            {/* Email */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">Email address</label>
+          <form
+            onSubmit={handleSubmit}
+            className="login-form"
+          >
+
+            <Field
+              label="Email address"
+              icon={Mail}
+            >
               <input
                 type="email"
-                placeholder="chahat@example.com"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-base outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="you@example.com"
               />
-            </div>
+            </Field>
 
-            {/* Password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">Password</label>
-              <input
-                type="password"
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-base outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
 
-            {/* Confirm Password */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">Confirm password</label>
-              <input
-                type="password"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-base outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
+            <Field
+  label="Password"
+  icon={Lock}
+>
+  <input
+    type={showPassword ? 'text' : 'password'}
+    required
+    minLength={8}
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    placeholder="Create a password"
+  />
 
-            {/* Error */}
+  <button
+    type="button"
+    className="password-toggle"
+    onClick={() => setShowPassword((prev) => !prev)}
+    aria-label={showPassword ? 'Hide password' : 'Show password'}
+  >
+    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+  </button>
+</Field>
+
+           <Field
+  label="Confirm password"
+  icon={Lock}
+>
+  <input
+    type={showConfirmPassword ? 'text' : 'password'}
+    required
+    minLength={8}
+    value={confirmPassword}
+    onChange={(e) => setConfirmPassword(e.target.value)}
+    placeholder="Confirm your password"
+  />
+
+  <button
+    type="button"
+    className="password-toggle"
+    onClick={() => setShowConfirmPassword((prev) => !prev)}
+    aria-label={
+      showConfirmPassword
+        ? 'Hide confirm password'
+        : 'Show confirm password'
+    }
+  >
+    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+  </button>
+</Field>
+
+            <p className="password-hint">
+  Password must be at least 8 characters.
+</p>
+            
+
+
             {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
+              <div className="login-error">
+                {error}
+              </div>
             )}
 
-            {/* Button */}
+
             <button
               type="submit"
-              className="w-full bg-blue-800 text-white py-3.5 rounded-lg text-base font-medium hover:bg-blue-900 transition-colors mt-2"
+              className="login-button"
             >
-              Create account
+              <span>Create account</span>
+              <ArrowRight size={17} />
             </button>
 
           </form>
 
-          {/* Sign in link */}
-          <p className="text-center text-sm text-gray-500">
+
+          {/* Login */}
+
+          <p className="login-register">
             Already have an account?{' '}
-            <Link to='/' className="text-blue-800 font-medium hover:underline">
+            <Link to="/">
               Sign in
             </Link>
           </p>
 
         </div>
+
+      </section>
+
+    </div>
+  );
+};
+
+
+/* ============================================================
+   FIELD
+============================================================ */
+
+const Field = ({ label, icon: Icon, children }) => {
+  return (
+    <div className="login-field">
+
+      <label>
+        {label}
+      </label>
+
+      <div className="login-input-wrapper">
+
+        <Icon size={17} />
+
+        {children}
+
       </div>
+
     </div>
   );
 };

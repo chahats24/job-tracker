@@ -1,290 +1,686 @@
-import { useState, useEffect} from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import {
+  Plus,
+  Search,
+  Layers3,
+  BriefcaseBusiness,
+  MessageSquare,
+  Trophy,
+  ExternalLink,
+  Pencil,
+  Trash2,
+  ArrowUpRight,
+} from 'lucide-react';
+
 import Navbar from '../components/Navbar';
 import ApplicationForm from '../components/ApplicationForm';
 import api from '../services/api';
 
 const Applications = () => {
   const [applications, setApplications] = useState([]);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
+
   const [showForm, setShowForm] = useState(false);
   const [applicationToEdit, setApplicationToEdit] = useState(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const fetchApplications = async () => {
-      setError('');
-      setLoading(true);
-      try {
-        const response = await api.get('/applications');
-        setApplications(response.data);
-      } catch (err) {
-        console.error('Failed to fetch applications:', err);
 
-        setError(
-          err.response?.data?.error ||
-          'Failed to load applications. Please try again.'
-        );
-      }
-      finally {
-        setLoading(false);
-      }
-    };
-    fetchApplications();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
-  }, []);
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Applied': return 'bg-blue-100 text-blue-700';
-      case 'Interview': return 'bg-amber-100 text-amber-700';
-      case 'Offer': return 'bg-green-100 text-green-700';
-      case 'Rejected': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+  const fetchApplications = async () => {
+    try {
+      const response = await api.get('/applications');
+      setApplications(response.data);
+    } catch (err) {
+      console.error('Failed to fetch applications:', err);
+    } finally {
+      setLoading(false);
     }
   };
-  const filtered = applications.filter(app => {
-    if (filter !== 'All') return app.status === filter;
-    return true;
-  }).filter(app => {
-    return (
-      app.company.toLowerCase().includes(search.toLowerCase()) || app.role.toLowerCase().includes(search.toLowerCase())
-    );
-  });
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this application?')) return;
 
-    setError('');
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  /* ================================
+     STATISTICS
+  ================================= */
+
+  const stats = useMemo(
+    () => ({
+      total: applications.length,
+
+      applied: applications.filter(
+        (app) => app.status === 'Applied'
+      ).length,
+
+      interviews: applications.filter(
+        (app) => app.status === 'Interview'
+      ).length,
+
+      offers: applications.filter(
+        (app) => app.status === 'Offer'
+      ).length,
+
+      rejected: applications.filter(
+        (app) => app.status === 'Rejected'
+      ).length,
+    }),
+    [applications]
+  );
+
+  /* ================================
+     FILTER APPLICATIONS
+  ================================= */
+
+  const filteredApplications = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return applications
+      .filter((app) => {
+        if (statusFilter === 'All') {
+          return true;
+        }
+
+        return app.status === statusFilter;
+      })
+      .filter((app) => {
+        if (!query) {
+          return true;
+        }
+
+        return (
+          app.company?.toLowerCase().includes(query) ||
+          app.role?.toLowerCase().includes(query) ||
+          app.status?.toLowerCase().includes(query)
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.dateApplied || 0) -
+          new Date(a.dateApplied || 0)
+      );
+  }, [applications, search, statusFilter]);
+
+  /* ================================
+     ADD APPLICATION
+  ================================= */
+
+  const handleApplicationAdded = (newApplication) => {
+    setApplications((prev) => [
+      newApplication,
+      ...prev,
+    ]);
+
+    setShowForm(false);
+    setApplicationToEdit(null);
+  };
+
+  /* ================================
+     EDIT APPLICATION
+  ================================= */
+
+  const handleEdit = (application) => {
+    setApplicationToEdit(application);
+    setShowForm(true);
+  };
+
+  /* ================================
+     DELETE APPLICATION
+  ================================= */
+
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this application?'
+    );
+
+    if (!confirmed) {
+      return;
+    }
 
     try {
       await api.delete(`/applications/${id}`);
 
-      setApplications(prev =>
-        prev.filter(app => app._id !== id)
+      setApplications((prev) =>
+        prev.filter((app) => app._id !== id)
+      );
+    } catch (err) {
+      console.error(
+        'Failed to delete application:',
+        err
       );
 
-    } catch (err) {
-      console.error('Failed to delete application:', err);
-
-      setError(
+      alert(
         err.response?.data?.error ||
-        'Failed to delete application. Please try again.'
+          'Failed to delete application.'
       );
     }
   };
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="p-8 max-w-7xl mx-auto flex flex-col gap-6">
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
+  /* ================================
+     CLOSE FORM
+  ================================= */
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setApplicationToEdit(null);
+  };
+
+  /* ================================
+     STATUS
+  ================================= */
+
+  const getStatusStyles = (status) => {
+    switch (status) {
+      case 'Interview':
+        return 'application-status application-status-interview';
+
+      case 'Offer':
+        return 'application-status application-status-offer';
+
+      case 'Rejected':
+        return 'application-status application-status-rejected';
+
+      case 'Applied':
+      default:
+        return 'application-status application-status-applied';
+    }
+  };
+
+  /* ================================
+     STAT CARD
+  ================================= */
+
+  const ApplicationStat = ({
+    icon: Icon,
+    label,
+    value,
+    iconClass,
+  }) => {
+    return (
+      <div className="application-stat-card">
+        <div className="application-stat-glow" />
+
+        <div className="application-stat-content">
           <div>
-    <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-semibold text-gray-800">
-            My Applications
-        </h1>
+            <p className="application-stat-label">
+              {label}
+            </p>
 
-        <span className="bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full">
-            {applications.length} total
-        </span>
-    </div>
+            <p className="application-stat-value">
+              {value}
+            </p>
+          </div>
 
-    <p className="text-sm text-gray-500 mt-1">
-        Track and manage all your job applications
-    </p>
-</div>
+          <div
+            className={`application-stat-icon ${iconClass}`}
+          >
+            <Icon
+              size={19}
+              strokeWidth={2.2}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="applications-page">
+      <Navbar />
+
+      <main className="applications-container">
+
+        {/* =========================================
+            HEADER
+        ========================================== */}
+
+        <section className="applications-hero">
+          <div className="applications-hero-copy">
+
+            <div className="applications-eyebrow">
+              <span className="applications-eyebrow-dot" />
+              Applications
+            </div>
+
+            <h1>Your applications</h1>
+
+            <p>
+              Keep every opportunity organized and stay
+              on top of your entire job search.
+            </p>
+
+          </div>
+
           <button
             onClick={() => {
               setApplicationToEdit(null);
               setShowForm(true);
             }}
-            className="bg-blue-800 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900"
+            className="trackit-primary applications-add-button"
           >
-            + Add Application
-          </button>
-        </div>
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+            <Plus
+              size={17}
+              strokeWidth={2.4}
+            />
 
-        {/* Toolbar */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3 flex-wrap">
-          <input
-            placeholder="Search company or role..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 w-full md:w-80"
+            Add application
+          </button>
+        </section>
+
+        {/* =========================================
+            STATISTICS
+        ========================================== */}
+
+        <section className="application-stat-grid">
+
+          <ApplicationStat
+            icon={Layers3}
+            label="Total applications"
+            value={loading ? '—' : stats.total}
+            iconClass="stat-icon-indigo"
           />
-          <div className="flex items-center gap-2">
-            {['All', 'Applied', 'Interview', 'Offer', 'Rejected'].map(f => (
+
+          <ApplicationStat
+            icon={BriefcaseBusiness}
+            label="Applied"
+            value={loading ? '—' : stats.applied}
+            iconClass="stat-icon-blue"
+          />
+
+          <ApplicationStat
+            icon={MessageSquare}
+            label="Interviews"
+            value={loading ? '—' : stats.interviews}
+            iconClass="stat-icon-amber"
+          />
+
+          <ApplicationStat
+            icon={Trophy}
+            label="Offers"
+            value={loading ? '—' : stats.offers}
+            iconClass="stat-icon-emerald"
+          />
+
+        </section>
+
+        {/* =========================================
+            SEARCH + FILTERS
+        ========================================== */}
+
+        <section className="applications-controls">
+
+          <div className="applications-search-shell">
+
+            <Search
+              size={18}
+              className="applications-search-icon"
+            />
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              placeholder="Search company, role or status..."
+              className="applications-search-input"
+            />
+
+          </div>
+
+          <div className="applications-filter-shell">
+
+            {[
+              'All',
+              'Applied',
+              'Interview',
+              'Offer',
+              'Rejected',
+            ].map((filter) => (
               <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={
-    filter === f
-        ? 'bg-blue-800 text-white px-3 py-2 rounded-lg text-xs font-medium shadow-sm'
-        : 'bg-white border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-xs font-medium hover:bg-gray-50 hover:text-gray-800'
-}
+                key={filter}
+                onClick={() =>
+                  setStatusFilter(filter)
+                }
+                className={`application-filter ${
+                  statusFilter === filter
+                    ? 'application-filter-active'
+                    : ''
+                }`}
               >
-                {f}
+                {filter}
               </button>
             ))}
+
           </div>
-        </div>
 
-        {/* Table */}
-        {loading ? (
-    <div className="flex items-center justify-center py-16 text-gray-500">
-        Loading applications...
-    </div>
-) : applications.length === 0 ? (
-    <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
-        <h3 className="text-lg font-semibold text-gray-800">
-            No applications yet
-        </h3>
+        </section>
 
-        <p className="text-sm text-gray-500 mt-2">
-            Start tracking your job applications by adding your first one.
-        </p>
+        {/* =========================================
+            APPLICATION TABLE
+        ========================================== */}
 
-        <button
-            onClick={() => {
-                setApplicationToEdit(null);
-                setShowForm(true);
-            }}
-            className="mt-5 bg-blue-800 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900"
-        >
-            + Add Application
-        </button>
-    </div>
-    ) : 
-    filtered.length === 0 ? (
-    <div className="py-16 text-center">
-        <h3 className="text-lg font-semibold text-gray-800">
-            No matching applications
-        </h3>
+        <section className="applications-table-card">
 
-        <p className="text-sm text-gray-500 mt-2">
-            Try changing your search or filter.
-        </p>
-    </div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50/80 border-b border-gray-200">
-                <tr>
-                  <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">Company</th>
-                  <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">Role</th>
-                  <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">Status</th>
-                  <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">Date Applied</th>
-                  <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">Job Link</th>
-                  <th className="text-left text-xs font-semibold text-gray-500 px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(app => (
-                  <tr key={app._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <div className="applications-table-header">
 
-                    {/* Company */}
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center text-xs font-semibold">
-                          {app.company[0].toUpperCase()}
-                        </div>
-                        <span className="text-sm font-medium text-gray-800">{app.company}</span>
-                      </div>
-                    </td>
+            <div>
 
-                    {/* Role */}
-                    <td className="px-4 py-3.5">
-                      <span className="text-sm text-gray-600">{app.role}</span>
-                    </td>
+              <div className="applications-table-title-row">
 
-                    {/* Status */}
-                    <td className="px-4 py-3.5">
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusColor(app.status)}`}>
-                        {app.status}
-                      </span>
-                    </td>
+                <h2>
+                  Applications
+                </h2>
 
-                    {/* Date */}
-                    <td className="px-4 py-3.5">
-                      <span className="text-sm text-gray-500">
-                        {new Date(app.dateApplied).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
-                    </td>
+                <span className="applications-count-pill">
+                  {filteredApplications.length}
+                </span>
 
-                    {/* Job Link */}
-                    <td className="px-4 py-3.5">
-                      {app.jobLink ? (
-                        <a href={app.jobLink} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">
-                          View ↗
-                        </a>
-                      ) : (
-                        <span className="text-xs text-gray-400">—</span>
-                      )}
-                    </td>
+              </div>
 
-                    {/* Actions */}
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setApplicationToEdit(app)}
-                          className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(app._id)}
-                          className="text-xs text-red-500 hover:text-red-700 font-medium"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+              <p>
+                {filteredApplications.length}{' '}
+                application
+                {filteredApplications.length !== 1
+                  ? 's'
+                  : ''}{' '}
+                shown
+              </p>
+
+            </div>
+
+            <div className="applications-table-filter-state">
+
+              <span className="filter-state-dot" />
+
+              {statusFilter !== 'All'
+                ? `Filtered by ${statusFilter}`
+                : 'All applications'}
+
+            </div>
+
+          </div>
+
+          {/* LOADING */}
+
+          {loading ? (
+            <div className="applications-empty-state">
+
+              <div className="application-loading-spinner" />
+
+              <p>
+                Loading applications...
+              </p>
+
+            </div>
+          ) : filteredApplications.length === 0 ? (
+
+            /* EMPTY STATE */
+
+            <div className="applications-empty-state">
+
+              <div className="empty-state-icon">
+                <BriefcaseBusiness size={24} />
+              </div>
+
+              <h3>
+                {search ||
+                statusFilter !== 'All'
+                  ? 'No applications found'
+                  : 'No applications yet'}
+              </h3>
+
+              <p>
+                {search ||
+                statusFilter !== 'All'
+                  ? 'Try changing your search or filter to find what you are looking for.'
+                  : 'Start tracking your job search by adding your first application.'}
+              </p>
+
+              {!search &&
+                statusFilter === 'All' && (
+                  <button
+                    onClick={() => {
+                      setApplicationToEdit(null);
+                      setShowForm(true);
+                    }}
+                    className="trackit-primary empty-state-button"
+                  >
+                    <Plus size={17} />
+
+                    Add application
+                  </button>
+                )}
+
+            </div>
+          ) : (
+
+            /* TABLE */
+
+            <div className="applications-table-scroll">
+
+              <table className="applications-table">
+
+                <thead>
+                  <tr>
+
+                    <th>
+                      Company
+                    </th>
+
+                    <th>
+                      Role
+                    </th>
+
+                    <th>
+                      Status
+                    </th>
+
+                    <th>
+                      Date applied
+                    </th>
+
+                    <th>
+                      Notes
+                    </th>
+
+                    <th className="actions-heading">
+                      Actions
+                    </th>
 
                   </tr>
-                ))}
+                </thead>
 
-                {/* Empty state */}
-                
-              </tbody>
-            </table>
-          </div>
-        )}
+                <tbody>
 
-        {(showForm || applicationToEdit) && (
-          <ApplicationForm
-            onClose={() => {
-              setShowForm(false);
-              setApplicationToEdit(null);
-            }}
-            applicationToEdit={applicationToEdit}
-            onApplicationAdded={(updatedApp) => {
+                  {filteredApplications.map(
+                    (app) => (
+                      <tr
+                        key={app._id}
+                        className="application-row"
+                      >
 
-              if (applicationToEdit) {
-                setApplications(prev =>
-                  prev.map(app =>
-                    app._id === updatedApp._id
-                      ? updatedApp
-                      : app
-                  )
-                );
-              } else {
-                setApplications(prev => [
-                  updatedApp,
-                  ...prev
-                ]);
-              }
+                        {/* COMPANY */}
 
-              setShowForm(false);
-              setApplicationToEdit(null);
-            }}
-          />
-        )}
+                        <td>
 
-      </div>
+                          <div className="application-company">
+
+                            <div className="application-company-avatar">
+                              {app.company
+                                ?.charAt(0)
+                                .toUpperCase() ||
+                                '?'}
+                            </div>
+
+                            <div className="application-company-info">
+
+                              <p>
+                                {app.company}
+                              </p>
+
+                              {app.jobLink && (
+                                <a
+                                  href={app.jobLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="application-view-link"
+                                >
+                                  View job
+                                  <ExternalLink
+                                    size={11}
+                                  />
+                                </a>
+                              )}
+
+                            </div>
+
+                          </div>
+
+                        </td>
+
+                        {/* ROLE */}
+
+                        <td>
+                          <p className="application-role">
+                            {app.role}
+                          </p>
+                        </td>
+
+                        {/* STATUS */}
+
+                        <td>
+
+                          <span
+                            className={getStatusStyles(
+                              app.status
+                            )}
+                          >
+                            <span className="status-dot" />
+                            {app.status}
+                          </span>
+
+                        </td>
+
+                        {/* DATE */}
+
+                        <td>
+
+                          <span className="application-date">
+
+                            {app.dateApplied
+                              ? new Date(
+                                  app.dateApplied
+                                ).toLocaleDateString(
+                                  'en-IN',
+                                  {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric',
+                                  }
+                                )
+                              : '—'}
+
+                          </span>
+
+                        </td>
+
+                        {/* NOTES */}
+
+                        <td className="notes-cell">
+
+                          <p
+                            className="application-notes"
+                            title={
+                              app.notes || ''
+                            }
+                          >
+                            {app.notes ||
+                              'No notes'}
+                          </p>
+
+                        </td>
+
+                        {/* ACTIONS */}
+
+                        <td>
+
+                          <div className="application-actions">
+
+                            {app.jobLink && (
+                              <a
+                                href={app.jobLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Open job posting"
+                                className="application-action-button action-open"
+                              >
+                                <ArrowUpRight
+                                  size={15}
+                                />
+                              </a>
+                            )}
+
+                            <button
+                              onClick={() =>
+                                handleEdit(app)
+                              }
+                              title="Edit application"
+                              className="application-action-button action-edit"
+                            >
+                              <Pencil
+                                size={15}
+                              />
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                handleDelete(
+                                  app._id
+                                )
+                              }
+                              title="Delete application"
+                              className="application-action-button action-delete"
+                            >
+                              <Trash2
+                                size={15}
+                              />
+                            </button>
+
+                          </div>
+
+                        </td>
+
+                      </tr>
+                    )
+                  )}
+
+                </tbody>
+
+              </table>
+
+            </div>
+          )}
+
+        </section>
+
+      </main>
+
+      {/* APPLICATION FORM */}
+
+      {showForm && (
+        <ApplicationForm
+          onClose={handleCloseForm}
+          onApplicationAdded={
+            handleApplicationAdded
+          }
+          applicationToEdit={
+            applicationToEdit
+          }
+        />
+      )}
+
     </div>
   );
 };
