@@ -42,19 +42,7 @@ const Dashboard = () => {
     fetchApplications();
   }, []);
 
-  const firstName =
-    user?.email?.split('@')[0]?.charAt(0).toUpperCase() +
-      user?.email?.split('@')[0]?.slice(1) || 'there';
-
-  const hour = new Date().getHours();
-
-  const greeting =
-    hour < 12
-      ? 'Good morning'
-      : hour < 17
-      ? 'Good afternoon'
-      : 'Good evening';
-
+  
   const total = applications.length;
 
   const interviews = applications.filter(
@@ -123,17 +111,16 @@ const Dashboard = () => {
             </div>
 
             <div className="hero-heading-row">
-              <div>
-                <h1>
-                  {greeting}, {firstName}
-                  <span className="wave">👋</span>
-                </h1>
+              
+<div>
+  <h1>All your applications. One place.</h1>
 
-                <p className="hero-description">
-                  Track applications, understand your progress,
-                  and prepare smarter for the interviews that matter.
-                </p>
-              </div>
+  <p className="hero-description">
+    Track applications, monitor progress, and stay organized
+    throughout your job search.
+  </p>
+</div>
+
 
               <button
                 onClick={() => setShowForm(true)}
