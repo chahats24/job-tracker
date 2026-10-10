@@ -15,7 +15,7 @@ if (!email || !password) {
 }
 
   try {
-    // Password security check
+    
     if (!password || password.length < 8) {
       return res.status(400).json({
         error: 'Password must be at least 8 characters long'
@@ -30,7 +30,7 @@ if (!email || !password) {
       });
     }
 
-    // Hash password before storing it
+    
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
 

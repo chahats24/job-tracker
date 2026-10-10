@@ -29,21 +29,21 @@ const addApplication = async (req, res) => {
         dateApplied
     } = req.body;
 
-    // Company validation
+    
     if (!company || !company.trim()) {
         return res.status(400).json({
             error: 'Company is required'
         });
     }
 
-    // Role validation
+    
     if (!role || !role.trim()) {
         return res.status(400).json({
             error: 'Role is required'
         });
     }
 
-    // Status validation
+    
     if (
         status &&
         !['Applied', 'Interview', 'Offer', 'Rejected'].includes(status)
@@ -53,14 +53,13 @@ const addApplication = async (req, res) => {
         });
     }
 
-    // Date validation
+    
     if (dateApplied && isNaN(Date.parse(dateApplied))) {
         return res.status(400).json({
             error: 'Invalid application date'
         });
     }
 
-    // Job link validation
     if (jobLink) {
         try {
             const url = new URL(jobLink);

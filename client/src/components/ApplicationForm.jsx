@@ -103,13 +103,12 @@ const ApplicationForm = ({
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl">
 
-      {/* MODAL */}
       <div className="relative w-full max-w-[820px] overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#0d0e12] shadow-[0_30px_100px_rgba(0,0,0,0.65)]">
 
-        {/* subtle top glow */}
+       
         <div className="pointer-events-none absolute left-1/2 top-0 h-32 w-[70%] -translate-x-1/2 rounded-full bg-indigo-500/[0.07] blur-3xl" />
 
-        {/* HEADER */}
+       
         <div className="relative border-b border-white/[0.07] px-6 py-6 sm:px-8">
 
           <div className="flex items-start justify-between">
@@ -152,7 +151,7 @@ const ApplicationForm = ({
           </div>
         </div>
 
-        {/* FORM */}
+       
         <form
           onSubmit={handleSubmit}
           className="relative max-h-[78vh] overflow-y-auto px-6 py-7 sm:px-8"
@@ -160,7 +159,7 @@ const ApplicationForm = ({
 
           <div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
 
-            {/* COMPANY */}
+            
             <div>
               <label className={labelClass}>
                 Company
@@ -182,7 +181,7 @@ const ApplicationForm = ({
               </div>
             </div>
 
-            {/* ROLE */}
+           
             <div>
               <label className={labelClass}>
                 Role
@@ -204,7 +203,6 @@ const ApplicationForm = ({
               </div>
             </div>
 
-            {/* JOB LINK */}
             <div>
               <label className={labelClass}>
                 Job link
@@ -226,7 +224,6 @@ const ApplicationForm = ({
               </div>
             </div>
 
-            {/* STATUS */}
             <div>
               <label className={labelClass}>
                 Status
@@ -289,7 +286,7 @@ const ApplicationForm = ({
               </div>
             </div>
 
-            {/* DATE */}
+            
             <div>
               <label className={labelClass}>
                 Date applied
@@ -311,7 +308,7 @@ const ApplicationForm = ({
               </div>
             </div>
 
-            {/* NOTES */}
+            
             <div className="sm:col-span-2">
               <label className={labelClass}>
                 Notes
@@ -341,7 +338,7 @@ const ApplicationForm = ({
 
           </div>
 
-          {/* ERROR */}
+          
           {error && (
             <div className="mt-6 flex items-start gap-3 rounded-xl border border-rose-500/20 bg-rose-500/[0.08] px-4 py-3.5 text-[13px] text-rose-300">
               <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />
@@ -349,7 +346,6 @@ const ApplicationForm = ({
             </div>
           )}
 
-          {/* FOOTER */}
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-white/[0.06] pt-6 sm:flex-row sm:items-center sm:justify-end">
 
             <button
